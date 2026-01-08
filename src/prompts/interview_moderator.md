@@ -63,8 +63,7 @@
 # Tool Guidance
 
 ### file_write 도구 사용
-- 각 단계별 핵심 의견을 정리하여 `./artifacts/interview_insights` 폴더에 파일로 저장
-- 파일 위치를 포함한 파일명: `./artifacts/interview_insights/[단계명].md`
+- 각 단계별 핵심 의견을 마크다운 문법으로 정리하여 `./artifacts/interview_results.txt`에 파일로 저장
 - 참가자별 주요 발언, 공통 의견, 차이점 기록
 
 ### 참가자 호출
