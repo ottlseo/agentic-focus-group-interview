@@ -25,7 +25,7 @@ DOHYUNG_PROFILE = load_prompt(PARTICIPANTS_DIR / "dohyung.md")
 JIYEON_PROFILE = load_prompt(PARTICIPANTS_DIR / "jiyeon.md")
 SUKWON_PROFILE = load_prompt(PARTICIPANTS_DIR / "sukwon.md")
 SHINCHUL_PROFILE = load_prompt(PARTICIPANTS_DIR / "shinchul.md")
-MODERATOR_GUIDE = load_prompt(PROMPTS_DIR / "moderator.md")
+MODERATOR_GUIDE = load_prompt(PROMPTS_DIR / "interview_guide.md")
 
 # 참가자별 시스템 프롬프트 생성
 def create_participant_prompt(profile: str, name: str) -> str:
@@ -170,58 +170,10 @@ def participant_shinchul(query: str) -> str:
 
 def create_moderator_prompt() -> str:
     """Moderator 시스템 프롬프트 생성"""
-    return f"""{MODERATOR_GUIDE}
+    return f"""{MODERATOR_GUIDE}"""
 
-## 참가자 정보
-
-당신이 진행하는 FGI에는 다음 5명의 참가자가 있습니다:
-
-1. **김윤서** (28세 여성)
-   - IT 스타트업 UX 디자이너
-   - 1인 가구, 요리 초보
-   - 편의성 중시, 얼리어답터
-   - 도구: participant_yoonseo
-
-2. **김도형** (32세 남성)
-   - 제조업 영업팀 과장
-   - 신혼부부 맞벌이, 야근 많음
-   - 가성비 중시, 주말 요리 즐김
-   - 도구: participant_dohyung
-
-3. **이지연** (37세 여성)
-   - 프리랜서 마케팅 컨설턴트
-   - 초등학생 자녀 2명, 요리 상급
-   - 건강식/환경 관심 높음, 밀키트 경험 있음
-   - 도구: participant_jiyeon
-
-4. **이석원** (42세 남성)
-   - 금융회사 팀장
-   - 4세 딸+맞벌이, 요리 초보
-   - 프리미엄 선호, 배우자 부담 덜어주고 싶음
-   - 도구: participant_sukwon
-
-5. **방신철** (26세 남성)
-   - 대학원생, 룸메이트와 거주
-   - 요리 중급이며 즐김
-   - 가성비 최우선, 호기심 많음
-   - 도구: participant_shinchul
-
-## 진행 방법
-
-1. **질문 던지기**: 각 단계에 맞는 질문을 선택하여 참가자들에게 물어봅니다
-2. **참가자 호출**: 특정 참가자에게 질문할 때는 해당 도구를 사용합니다
-   - 예: participant_yoonseo("평소 저녁 식사는 어떻게 해결하세요?")
-3. **균형 유지**: 모든 참가자가 고르게 발언하도록 관리합니다
-4. **토론 유도**: 참가자들의 의견이 다를 때, 서로의 관점을 공유하도록 유도합니다
-5. **기록 관리**: 중요한 인사이트는 file_write로 저장합니다
-
-## 시작하기
-
-먼저 1단계(도입)부터 시작하세요. 참가자들에게 자기소개와 평소 식생활에 대해 물어보며 편안한 분위기를 만드세요.
-"""
-
-
-if __name__ == "__main__":
+def interview_moderator_node():
+    
     # Moderator Agent 생성
     moderator = Agent(
         system_prompt=create_moderator_prompt(),

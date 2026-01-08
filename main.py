@@ -1,6 +1,7 @@
-def main():
-    print("Hello from myenv!")
-
+from src.graph.builder import build_graph
+from src.graph.interview_node import interview_moderator_node
 
 if __name__ == "__main__":
-    main()
+    # build_graph()
+    interview_moderator_node()
+    
