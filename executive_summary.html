@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>밀키트 구독 서비스 FGI 분석 리포트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        .report {
+            background: white;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 4px solid #3498db;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-top: 35px;
+            margin-bottom: 20px;
+        }
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .summary-box h3 {
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        .key-metrics {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .metric {
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        th {
+            background: #34495e;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .score-high { 
+            background: #d4edda !important; 
+            color: #155724; 
+            font-weight: bold; 
+        }
+        .score-medium { 
+            background: #fff3cd !important; 
+            color: #856404; 
+            font-weight: bold; 
+        }
+        .score-low { 
+            background: #f8d7da !important; 
+            color: #721c24; 
+            font-weight: bold; 
+        }
+        .priority-p0 { 
+            background: #ffebee !important; 
+            border-left: 4px solid #f44336;
+        }
+        .priority-p1 { 
+            background: #fff8e1 !important; 
+            border-left: 4px solid #ff9800;
+        }
+        .priority-p2 { 
+            background: #e3f2fd !important; 
+            border-left: 4px solid #2196f3;
+        }
+        .insight-box {
+            background: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .segment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .segment-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+        .segment-title {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        @media print {
+            body { background: white; padding: 20px; }
+            .report { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="report">
+        <h1>밀키트 구독 서비스 FGI 분석 리포트</h1>
+        
+        <div class="summary-box">
+            <h3>핵심 결론 (30초 요약)</h3>
+            <div class="key-metrics">
+                <div class="metric">
+                    <span class="metric-value">6.4/10</span>
+                    <span>평균 구독 의향</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">60%</span>
+                    <span>가격 수용률</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">100%</span>
+                    <span>가격/가성비 우려</span>
+                </div>
+            </div>
+            <p><strong>결론: 높은 잠재 관심도를 보이나 가격 부담과 라이프스타일 불일치가 주요 장벽. 세그먼트별 차별화 전략과 유연한 구독 모델 필요</strong></p>
+        </div>
+
+        <h2>1. 타겟 세그먼트 우선순위</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>세그먼트</th>
+                    <th>구독 의향</th>
+                    <th>지불 의향가</th>
+                    <th>제시 가격</th>
+                    <th>가격 갭</th>
+                    <th>우선순위</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="score-high">
+                    <td>1인 가구 (윤서)</td>
+                    <td>7.0점</td>
+                    <td>월 25-30만원</td>
+                    <td>월 8만원</td>
+                    <td>+200%</td>
+                    <td>P0 - 최우선</td>
+                </tr>
+                <tr class="score-high">
+                    <td>4인 가족 (지연)</td>
+                    <td>7.0점</td>
+                    <td>월 20-25만원</td>
+                    <td>월 20만원</td>
+                    <td>+15%</td>
+                    <td>P0 - 최우선</td>
+                </tr>
+                <tr class="score-medium">
+                    <td>3인 가족 (석원)</td>
+                    <td>6.0점</td>
+                    <td>월 20-30만원</td>
+                    <td>월 20만원</td>
+                    <td>+25%</td>
+                    <td>P1 - 높음</td>
+                </tr>
+                <tr class="score-medium">
+                    <td>신혼부부 (도형)</td>
+                    <td>6.0점</td>
+                    <td>월 5-6만원</td>
+                    <td>월 12만원</td>
+                    <td>-50%</td>
+                    <td>P2 - 조건부</td>
+                </tr>
+                <tr class="score-medium">
+                    <td>학생층 (신철)</td>
+                    <td>6.0점</td>
+                    <td>월 5-7만원</td>
+                    <td>월 8만원</td>
+                    <td>-25%</td>
+                    <td>P2 - 할인 필요</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>2. 가격 전략 권고</h2>
+        <div class="success-box">
+            <h4>💡 핵심 가격 인사이트</h4>
+            <ul>
+                <li><strong>1인 가구</strong>: 현재 가격 매우 합리적 (지불의향가 대비 70% 저렴)</li>
+                <li><strong>가족 단위</strong>: 현재 가격대 적절 (±20% 범위)</li>
+                <li><strong>신혼부부/학생</strong>: 50% 할인된 별도 요금제 필요</li>
+            </ul>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>세그먼트</th>
+                    <th>현재 가격</th>
+                    <th>권고 가격</th>
+                    <th>전략</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="score-high">
+                    <td>1인 가구</td>
+                    <td>월 8만원</td>
+                    <td>월 8만원</td>
+                    <td>현재 가격 유지, 프리미엄 옵션 추가</td>
+                </tr>
+                <tr class="score-high">
+                    <td>4인 가족</td>
+                    <td>월 20만원</td>
+                    <td>월 18만원</td>
+                    <td>10% 할인으로 심리적 장벽 완화</td>
+                </tr>
+                <tr class="score-medium">
+                    <td>신혼부부</td>
+                    <td>월 12만원</td>
+                    <td>월 6-8만원</td>
+                    <td>주말 전용 플랜 (주 1-2회)</td>
+                </tr>
+                <tr class="score-medium">
+                    <td>학생층</td>
+                    <td>월 8만원</td>
+                    <td>월 5-6만원</td>
+                    <td>학생 할인 30% + 룸메이트 쉐어</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>3. Pain Point 우선순위 매트릭스</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pain Point</th>
+                    <th>언급률</th>
+                    <th>심각도</th>
+                    <th>해결 난이도</th>
+                    <th>우선순위</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="priority-p0">
+                    <td>가격/가성비 부담</td>
+                    <td>100%</td>
+                    <td>높음</td>
+                    <td>중간</td>
+                    <td>P0 - 즉시</td>
+                </tr>
+                <tr class="priority-p0">
+                    <td>요리 실패 위험</td>
+                    <td>80%</td>
+                    <td>높음</td>
+                    <td>낮음</td>
+                    <td>P0 - 즉시</td>
+                </tr>
+                <tr class="priority-p1">
+                    <td>라이프스타일 불일치</td>
+                    <td>80%</td>
+                    <td>높음</td>
+                    <td>높음</td>
+                    <td>P1 - 단기</td>
+                </tr>
+                <tr class="priority-p1">
+                    <td>구독 해지의 어려움</td>
+                    <td>60%</td>
+                    <td>중간</td>
+                    <td>낮음</td>
+                    <td>P1 - 단기</td>
+                </tr>
+                <tr class="priority-p1">
+                    <td>알레르기 정보 부족</td>
+                    <td>40%</td>
+                    <td>높음</td>
+                    <td>낮음</td>
+                    <td>P1 - 단기</td>
+                </tr>
+                <tr class="priority-p2">
+                    <td>환경 문제 (포장재)</td>
+                    <td>60%</td>
+                    <td>중간</td>
+                    <td>높음</td>
+                    <td>P2 - 중장기</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>4. 제품 개발 우선순위</h2>
+        <div class="segment-grid">
+            <div class="segment-card priority-p0">
+                <div class="segment-title">P0 - 즉시 실행 (1-2주)</div>
+                <ul>
+                    <li>첫 구매 50% 할인 프로모션</li>
+                    <li>요리 실패 시 100% 환불 보장</li>
+                    <li>알레르기 정보 패키지 전면 표시</li>
+                    <li>1일 무료 체험 키트</li>
+                </ul>
+            </div>
+            <div class="segment-card priority-p1">
+                <div class="segment-title">P1 - 단기 실행 (1-2개월)</div>
+                <ul>
+                    <li>QR코드 연동 조리 영상 시스템</li>
+                    <li>유연한 구독 관리 (일시정지/재개)</li>
+                    <li>세그먼트별 차별 요금제</li>
+                    <li>AI 개인화 추천 시스템</li>
+                </ul>
+            </div>
+            <div class="segment-card priority-p2">
+                <div class="segment-title">P2 - 중장기 실행 (3-6개월)</div>
+                <ul>
+                    <li>친환경 포장재 전환</li>
+                    <li>실시간 요리 도우미 챗봇</li>
+                    <li>가족 참여형 요리 컨텐츠</li>
+                    <li>건강 지표 기반 맞춤 메뉴</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>5. 리스크 & 대응책</h2>
+        <div class="warning-box">
+            <h4>⚠️ 주요 리스크</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>리스크</th>
+                        <th>발생 확률</th>
+                        <th>영향도</th>
+                        <th>대응책</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>초기 요리 실패로 인한 이탈</td>
+                        <td>높음</td>
+                        <td>높음</td>
+                        <td>실패 방지 시스템 + 실패 시 보상</td>
+                    </tr>
+                    <tr>
+                        <td>가격 저항으로 인한 낮은 전환율</td>
+                        <td>높음</td>
+                        <td>높음</td>
+                        <td>세그먼트별 할인 + 체험 프로그램</td>
+                    </tr>
+                    <tr>
+                        <td>구독 해지율 증가</td>
+                        <td>중간</td>
+                        <td>높음</td>
+                        <td>유연한 구독 관리 + 만족도 모니터링</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>6. 예상 전환율 & ROI</h2>
+        <div class="insight-box">
+            <h4>📊 전환율 예측</h4>
+            <ul>
+                <li><strong>1인 가구</strong>: 25-30% (높은 지불 의향 + 편의성 니즈)</li>
+                <li><strong>4인 가족</strong>: 20-25% (메뉴 고민 해소 가치 높음)</li>
+                <li><strong>3인 가족</strong>: 15-20% (조건부 관심)</li>
+                <li><strong>신혼부부</strong>: 10-15% (할인 시)</li>
+                <li><strong>학생층</strong>: 10-15% (할인 시)</li>
+            </ul>
+            <p><strong>전체 예상 전환율: 18-23%</strong></p>
+        </div>
+
+        <h2>7. Next Steps (향후 4주 액션플랜)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>주차</th>
+                    <th>액션</th>
+                    <th>담당</th>
+                    <th>KPI</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="priority-p0">
+                    <td>1주차</td>
+                    <td>첫 구매 할인 프로모션 런칭</td>
+                    <td>마케팅팀</td>
+                    <td>체험 구매 100건/주</td>
+                </tr>
+                <tr class="priority-p0">
+                    <td>2주차</td>
+                    <td>요리 실패 보장 정책 수립</td>
+                    <td>CS팀</td>
+                    <td>실패율 5% 이하</td>
+                </tr>
+                <tr class="priority-p1">
+                    <td>3주차</td>
+                    <td>세그먼트별 요금제 설계</td>
+                    <td>기획팀</td>
+                    <td>가격 수용률 70%</td>
+                </tr>
+                <tr class="priority-p1">
+                    <td>4주차</td>
+                    <td>조리 영상 시스템 개발 착수</td>
+                    <td>개발팀</td>
+                    <td>MVP 완성</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="success-box">
+            <h4>🎯 성공 지표 (3개월 내 달성 목표)</h4>
+            <ul>
+                <li><strong>첫 구매 전환율</strong>: 20% 이상</li>
+                <li><strong>3개월 구독 지속률</strong>: 60% 이상</li>
+                <li><strong>요리 실패율</strong>: 5% 이하</li>
+                <li><strong>NPS</strong>: 8점 이상</li>
+                <li><strong>월 신규 가입자</strong>: 1,000명 이상</li>
+            </ul>
+        </div>
+
+        <p style="text-align: center; color: #6c757d; margin-top: 40px; font-size: 12px;">
+            Generated: 2024년 FGI 분석 리포트 | 참가자 5명 | 분석 기간: 7단계
+        </p>
+    </div>
+</body>
+</html>
