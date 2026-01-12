@@ -13,11 +13,15 @@ function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, 100)
   }
 
   useEffect(() => {
-    scrollToBottom()
+    if (messages.length > 0) {
+      scrollToBottom()
+    }
   }, [messages])
 
   const startFGI = async () => {
@@ -27,63 +31,62 @@ function App() {
     // CloudFront를 통해 백엔드 연결
     const isCloudFront = window.location.hostname.includes('cloudfront.net')
     const backendUrl = isCloudFront
-      ? window.location.origin + '/proxy/8000/api/fgi/run'  // 실제 LLM 호출
-      : 'http://localhost:8000/api/fgi/run'  // 실제 LLM 호출
+      ? window.location.origin + '/proxy/8000/api/fgi/stream'  // SSE 스트리밍
+      : 'http://localhost:8000/api/fgi/stream'  // SSE 스트리밍
 
     console.log('Connecting to backend:', backendUrl)
 
     try {
       setStatus('running')
 
-      // 로딩 메시지 표시
-      const loadingMsg = 'AI 참가자들이 응답을 생성 중입니다... (약 1-2분 소요)'
+      const eventSource = new EventSource(backendUrl)
 
-      setMessages([{
-        type: 'system',
-        content: loadingMsg
-      }])
-
-      // 3분 타임아웃 (순차 처리로 인해 시간이 더 필요)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 180000)
-
-      const response = await fetch(backendUrl, {
-        signal: controller.signal
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          
+          if (data.type === 'complete') {
+            setStatus('completed')
+            eventSource.close()
+          } else if (data.type === 'error') {
+            setStatus('error')
+            eventSource.close()
+          } else {
+            setMessages(prev => [...prev, data])
+          }
+        } catch (err) {
+          console.error('Parse error:', err)
+        }
       }
 
-      const data = await response.json()
-      const allMessages = data.messages || []
-
-      // 로딩 메시지 제거 후 실제 메시지 표시
-      setMessages([])
-
-      // 메시지를 하나씩 천천히 표시 (애니메이션 효과)
-      for (let i = 0; i < allMessages.length; i++) {
-        setMessages(prev => [...prev, allMessages[i]])
-        // 메시지 타입에 따라 다른 지연 시간
-        const delay = allMessages[i].type === 'system' ? 300 : 800
-        await new Promise(resolve => setTimeout(resolve, delay))
+      eventSource.onerror = (err) => {
+        console.error('SSE Error:', err)
+        setStatus('error')
+        setMessages(prev => [...prev, {
+          type: 'error',
+          content: '연결 오류가 발생했습니다. 백엔드 서버가 실행 중인지 확인해주세요.'
+        }])
+        eventSource.close()
       }
 
-      setStatus('completed')
+      // 3분 후 자동 종료
+      setTimeout(() => {
+        if (eventSource.readyState !== EventSource.CLOSED) {
+          eventSource.close()
+          setStatus('error')
+          setMessages(prev => [...prev, {
+            type: 'error',
+            content: '요청 시간이 초과되었습니다.'
+          }])
+        }
+      }, 180000)
+
     } catch (err) {
       console.error('Request Error:', err)
       setStatus('error')
-
-      const error = err as Error
-      const errorMessage = error.name === 'AbortError'
-        ? '요청 시간이 초과되었습니다. 다시 시도해주세요.'
-        : '연결 오류가 발생했습니다. 백엔드 서버가 실행 중인지 확인해주세요.'
-
       setMessages([{
         type: 'error',
-        content: errorMessage
+        content: '연결 오류가 발생했습니다.'
       }])
     }
   }

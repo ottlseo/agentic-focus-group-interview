@@ -145,21 +145,21 @@ async def fgi_stream():
 
         question1 = "자기소개와 함께 평소 식사 준비는 어떻게 하시는지 말씀해주세요."
 
-        # # 순차적으로 응답 생성 (대화처럼 보이도록)
-        # for participant_id, participant_name in participants:
-        #     response = get_participant_response(participant_id, question1)
-        #     yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
-        #     await asyncio.sleep(1.5)
-
-        # 병렬 처리 버전 (속도 개선용, 필요시 위 코드와 교체)
-        tasks = [
-            asyncio.to_thread(get_participant_response, participant_id, question1)
-            for participant_id, _ in participants
-        ]
-        responses = await asyncio.gather(*tasks)
-        for (participant_id, participant_name), response in zip(participants, responses):
+        # 순차적으로 응답 생성 (대화처럼 보이도록)
+        for participant_id, participant_name in participants:
+            response = get_participant_response(participant_id, question1)
             yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1.5)
+
+        # # 병렬 처리 버전 (속도 개선용, 필요시 위 코드와 교체)
+        # tasks = [
+        #     asyncio.to_thread(get_participant_response, participant_id, question1)
+        #     for participant_id, _ in participants
+        # ]
+        # responses = await asyncio.gather(*tasks)
+        # for (participant_id, participant_name), response in zip(participants, responses):
+        #     yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
+        #     await asyncio.sleep(0.5)
 
         # 추가 질문
         yield f"data: {json.dumps({'type': 'moderator', 'content': '밀키트를 사용해보신 경험이 있으신가요? 있으시다면 어떠셨는지, 없으시다면 왜 사용하지 않으셨는지 말씀해주세요.'}, ensure_ascii=False)}\n\n"
@@ -167,21 +167,21 @@ async def fgi_stream():
 
         question2 = "밀키트를 사용해보신 경험이 있으신가요? 있으시다면 어떠셨는지, 없으시다면 왜 사용하지 않으셨는지 말씀해주세요."
 
-        # # 순차적으로 응답 생성 (대화처럼 보이도록)
-        # for participant_id, participant_name in participants:
-        #     response = get_participant_response(participant_id, question2)
-        #     yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
-        #     await asyncio.sleep(1.5)
-
-        # 병렬 처리 버전 (속도 개선용, 필요시 위 코드와 교체)
-        tasks = [
-            asyncio.to_thread(get_participant_response, participant_id, question2)
-            for participant_id, _ in participants
-        ]
-        responses = await asyncio.gather(*tasks)
-        for (participant_id, participant_name), response in zip(participants, responses):
+        # 순차적으로 응답 생성 (대화처럼 보이도록)
+        for participant_id, participant_name in participants:
+            response = get_participant_response(participant_id, question2)
             yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1.5)
+
+        # # 병렬 처리 버전 (속도 개선용, 필요시 위 코드와 교체)
+        # tasks = [
+        #     asyncio.to_thread(get_participant_response, participant_id, question2)
+        #     for participant_id, _ in participants
+        # ]
+        # responses = await asyncio.gather(*tasks)
+        # for (participant_id, participant_name), response in zip(participants, responses):
+        #     yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
+        #     await asyncio.sleep(0.5)
 
         # 마무리
         yield f"data: {json.dumps({'type': 'moderator', 'content': '좋은 의견 감사합니다. 오늘 논의된 내용을 바탕으로 더 나은 서비스를 만들어나가겠습니다.'}, ensure_ascii=False)}\n\n"
