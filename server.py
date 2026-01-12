@@ -17,8 +17,8 @@ app = FastAPI()
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite, CRA 기본 포트
-    allow_credentials=True,
+    allow_origins=["*"],  # 개발 환경에서 모든 origin 허용
+    allow_credentials=False,  # allow_origins=["*"]일 때는 False여야 함
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -134,7 +134,7 @@ async def fgi_stream():
         yield f"data: {json.dumps({'type': 'moderator', 'content': '안녕하세요 여러분! 오늘 구독형 밀키트 서비스에 대한 이야기를 나눠보겠습니다. 먼저 간단히 자기소개와 함께 평소 식사 준비는 어떻게 하시는지 말씀해주시겠어요?'}, ensure_ascii=False)}\n\n"
         await asyncio.sleep(1)
 
-        # 참가자들 응답 (순차적으로)
+        # 참가자들 응답
         participants = [
             ("yoonseo", "윤서"),
             ("dohyung", "도형"),
@@ -145,10 +145,21 @@ async def fgi_stream():
 
         question1 = "자기소개와 함께 평소 식사 준비는 어떻게 하시는지 말씀해주세요."
 
-        for participant_id, participant_name in participants:
-            response = get_participant_response(participant_id, question1)
+        # # 순차적으로 응답 생성 (대화처럼 보이도록)
+        # for participant_id, participant_name in participants:
+        #     response = get_participant_response(participant_id, question1)
+        #     yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
+        #     await asyncio.sleep(1.5)
+
+        # 병렬 처리 버전 (속도 개선용, 필요시 위 코드와 교체)
+        tasks = [
+            asyncio.to_thread(get_participant_response, participant_id, question1)
+            for participant_id, _ in participants
+        ]
+        responses = await asyncio.gather(*tasks)
+        for (participant_id, participant_name), response in zip(participants, responses):
             yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(0.5)
 
         # 추가 질문
         yield f"data: {json.dumps({'type': 'moderator', 'content': '밀키트를 사용해보신 경험이 있으신가요? 있으시다면 어떠셨는지, 없으시다면 왜 사용하지 않으셨는지 말씀해주세요.'}, ensure_ascii=False)}\n\n"
@@ -156,10 +167,21 @@ async def fgi_stream():
 
         question2 = "밀키트를 사용해보신 경험이 있으신가요? 있으시다면 어떠셨는지, 없으시다면 왜 사용하지 않으셨는지 말씀해주세요."
 
-        for participant_id, participant_name in participants:
-            response = get_participant_response(participant_id, question2)
+        # # 순차적으로 응답 생성 (대화처럼 보이도록)
+        # for participant_id, participant_name in participants:
+        #     response = get_participant_response(participant_id, question2)
+        #     yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
+        #     await asyncio.sleep(1.5)
+
+        # 병렬 처리 버전 (속도 개선용, 필요시 위 코드와 교체)
+        tasks = [
+            asyncio.to_thread(get_participant_response, participant_id, question2)
+            for participant_id, _ in participants
+        ]
+        responses = await asyncio.gather(*tasks)
+        for (participant_id, participant_name), response in zip(participants, responses):
             yield f"data: {json.dumps({'type': 'participant', 'name': participant_name, 'content': response}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(0.5)
 
         # 마무리
         yield f"data: {json.dumps({'type': 'moderator', 'content': '좋은 의견 감사합니다. 오늘 논의된 내용을 바탕으로 더 나은 서비스를 만들어나가겠습니다.'}, ensure_ascii=False)}\n\n"
@@ -188,6 +210,69 @@ async def stream_fgi():
             "X-Accel-Buffering": "no"
         }
     )
+
+@app.get("/api/fgi/run")
+async def run_fgi():
+    """FGI 실행 (한 번에 모든 데이터 반환)"""
+    messages = []
+
+    async for event in fgi_stream():
+        if event.startswith("data: "):
+            try:
+                data = json.loads(event[6:])
+                if data.get('type') != 'complete':
+                    messages.append(data)
+            except:
+                pass
+
+    return {"messages": messages}
+
+@app.get("/api/fgi/demo")
+async def demo_fgi():
+    """데모 FGI (미리 생성된 빠른 응답)"""
+    # 간단한 데모 응답 (5명만)
+    demo_messages = []
+
+    demo_messages.append({"type": "system", "content": "FGI 세션을 시작합니다..."})
+    await asyncio.sleep(0.3)
+
+    demo_messages.append({"type": "system", "content": "참가자: 윤서, 도형, 지연, 석원, 신철"})
+    await asyncio.sleep(0.3)
+
+    demo_messages.append({"type": "moderator", "content": "안녕하세요! 오늘은 구독형 밀키트 서비스에 대해 이야기 나눠보겠습니다. 먼저 평소 식사 준비는 어떻게 하시나요?"})
+    await asyncio.sleep(0.5)
+
+    # 각 참가자 응답 (미리 작성된 샘플)
+    participants_responses = [
+        ("윤서", "저는 혼자 살다 보니 매일 요리하기가 부담스러워요. 주로 배달음식이나 간편식을 많이 먹는 편이에요."),
+        ("도형", "신혼이라 아내와 번갈아가며 요리하는데, 레시피 찾고 장보는 게 생각보다 시간이 많이 걸리더라고요."),
+        ("지연", "아이 둘 키우면서 매일 영양가 있는 식사 챙기려니 정말 힘들어요. 시간도 없고 메뉴 고민도 크고요."),
+        ("석원", "맞벌이라 저녁 늦게 귀가하는 날이 많은데, 그럴 때마다 뭘 해먹을지 고민되더라고요."),
+        ("신철", "대학원생이라 시간도 없고 요리 실력도 없어서, 주로 편의점이나 학식으로 때우고 있어요.")
+    ]
+
+    for name, response in participants_responses:
+        demo_messages.append({"type": "participant", "name": name, "content": response})
+        await asyncio.sleep(0.5)
+
+    demo_messages.append({"type": "moderator", "content": "좋은 의견 감사합니다. 밀키트를 사용해보신 경험이 있으신가요?"})
+    await asyncio.sleep(0.5)
+
+    responses2 = [
+        ("윤서", "네, 몇 번 써봤는데 재료가 딱 필요한 만큼만 와서 좋더라고요. 낭비가 없어요."),
+        ("도형", "저도 써봤는데, 레시피대로 하면 실패 없이 만들 수 있어서 좋았어요."),
+        ("지연", "가격이 좀 부담되긴 하지만, 시간 절약을 생각하면 나쁘지 않은 것 같아요."),
+        ("석원", "아직 안 써봤는데, 구독형이면 매주 정기적으로 오는 건가요? 궁금하네요."),
+        ("신철", "가격 때문에 망설여지네요. 학생 입장에서는 부담스러울 것 같아서요.")
+    ]
+
+    for name, response in responses2:
+        demo_messages.append({"type": "participant", "name": name, "content": response})
+        await asyncio.sleep(0.5)
+
+    demo_messages.append({"type": "system", "content": "FGI 세션이 종료되었습니다."})
+
+    return {"messages": demo_messages}
 
 if __name__ == "__main__":
     import uvicorn
