@@ -108,27 +108,69 @@ function App() {
             disabled={status === 'running' || status === 'connecting'}
             className="start-button"
           >
-            {status === 'idle' ? 'FGI 시작' : status === 'running' ? '진행 중...' : 'FGI 재시작'}
+            {status === 'idle' ? '인터뷰 시작' : status === 'running' ? '진행 중...' : '인터뷰 재시작'}
           </button>
         </div>
       </header>
 
-      <main className="messages-container">
+      <main className="chat-container">
         {messages.length === 0 && status === 'idle' && (
           <div className="empty-state">
-            <p>👆 "FGI 시작" 버튼을 눌러 인터뷰를 시작하세요</p>
+            <p>👆 "인터뷰 시작" 버튼을 눌러 인터뷰를 시작하세요</p>
             <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '12px' }}>
               실시간 스트리밍으로 대화가 진행됩니다 (약 1-2분 소요)
             </p>
             <div className="participants-info">
               <h3>참가자</h3>
-              <ul>
-                <li>윤서 (28세 여성, IT 스타트업 UX 디자이너)</li>
-                <li>도형 (32세 남성, 제조업 영업팀 과장)</li>
-                <li>지연 (37세 여성, 프리랜서 마케팅 컨설턴트)</li>
-                <li>석원 (42세 남성, 금융회사 팀장)</li>
-                <li>신철 (26세 남성, 대학원생)</li>
-              </ul>
+              <div className="participants-grid">
+                <div className="participant-card moderator-card">
+                  <div className="participant-header">
+                    <div className="participant-avatar">🎤</div>
+                    <div className="participant-name">Moderator</div>
+                  </div>
+                  <div className="participant-desc">인터뷰 진행자</div>
+                </div>
+                
+                <div className="participant-card">
+                  <div className="participant-header">
+                    <div className="participant-avatar">👩‍💻</div>
+                    <div className="participant-name">윤서</div>
+                  </div>
+                  <div className="participant-desc">28세 여성, IT 스타트업 UX 디자이너</div>
+                </div>
+                
+                <div className="participant-card">
+                  <div className="participant-header">
+                    <div className="participant-avatar">👨‍💼</div>
+                    <div className="participant-name">도형</div>
+                  </div>
+                  <div className="participant-desc">32세 남성, 제조업 영업팀 과장</div>
+                </div>
+                
+                <div className="participant-card">
+                  <div className="participant-header">
+                    <div className="participant-avatar">👩‍💼</div>
+                    <div className="participant-name">지연</div>
+                  </div>
+                  <div className="participant-desc">37세 여성, 프리랜서 마케팅 컨설턴트</div>
+                </div>
+                
+                <div className="participant-card">
+                  <div className="participant-header">
+                    <div className="participant-avatar">👨‍🏢</div>
+                    <div className="participant-name">석원</div>
+                  </div>
+                  <div className="participant-desc">42세 남성, 금융회사 팀장</div>
+                </div>
+                
+                <div className="participant-card">
+                  <div className="participant-header">
+                    <div className="participant-avatar">👨‍🎓</div>
+                    <div className="participant-name">신철</div>
+                  </div>
+                  <div className="participant-desc">26세 남성, 대학원생</div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -136,36 +178,48 @@ function App() {
         {messages.map((msg, index) => (
           <div key={index} className={`message message-${msg.type}`}>
             {msg.type === 'system' && (
-              <div className="message-content">
-                <span className="message-icon">ℹ️</span>
-                <span className="message-text">{msg.content}</span>
+              <div className="bubble bubble-system">
+                <span className="message-icon">ℹ️</span> {msg.content}
               </div>
             )}
 
             {msg.type === 'moderator' && (
-              <div className="message-content">
-                <div className="message-header">
-                  <span className="message-icon">🎤</span>
-                  <span className="message-sender">Moderator</span>
+              <>
+                <div className="avatar avatar-moderator">🎤</div>
+                <div className="message-content">
+                  <div className="message-header">
+                    <span className="message-sender">Moderator</span>
+                  </div>
+                  <div className="bubble bubble-moderator">
+                    {msg.content}
+                  </div>
                 </div>
-                <div className="message-text">{msg.content}</div>
-              </div>
+              </>
             )}
 
             {msg.type === 'participant' && (
-              <div className="message-content">
-                <div className="message-header">
-                  <span className="message-icon">👤</span>
-                  <span className="message-sender">{msg.name}</span>
+              <>
+                <div className="avatar avatar-participant">
+                  {msg.name === '윤서' && '👩‍💻'}
+                  {msg.name === '도형' && '👨‍💼'}
+                  {msg.name === '지연' && '👩‍💼'}
+                  {msg.name === '석원' && '👨‍🏢'}
+                  {msg.name === '신철' && '👨‍🎓'}
                 </div>
-                <div className="message-text">{msg.content}</div>
-              </div>
+                <div className="message-content">
+                  <div className="message-header">
+                    <span className="message-sender">{msg.name}</span>
+                  </div>
+                  <div className="bubble bubble-participant">
+                    {msg.content}
+                  </div>
+                </div>
+              </>
             )}
 
             {msg.type === 'error' && (
-              <div className="message-content">
-                <span className="message-icon">❌</span>
-                <span className="message-text">{msg.content}</span>
+              <div className="bubble bubble-error">
+                <span className="message-icon">❌</span> {msg.content}
               </div>
             )}
           </div>
