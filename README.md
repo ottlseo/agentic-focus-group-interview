@@ -1,4 +1,4 @@
-# Focus Group Interview Agents
+# Agentic "Focus Group Interview"
 
 AI 기반 Focus Group Interview(FGI) 시뮬레이션 시스템
 
@@ -120,9 +120,41 @@ focus-group-interview-agents/
 - 다양한 사용자 세그먼트의 의견 수렴
 - 정성 리서치 프로토타이핑
 
+## 실행 방법
+
+### 웹 UI 실행 (권장)
+
+1. **백엔드 서버 시작**:
+```bash
+python server.py
+```
+
+2. **프론트엔드 시작** (새 터미널):
+```bash
+cd frontend
+npm install  # 처음 한 번만
+npm run dev
+```
+
+3. 브라우저에서 http://localhost:5173 접속
+
+4. "FGI 시작" 버튼 클릭하여 실시간으로 인터뷰 진행 과정 확인
+
+### CLI 실행
+
+```bash
+python main.py
+```
+
 ## 기술 스택
 
-- **프레임워크**: Strands (멀티 에이전트 오케스트레이션)
-- **언어**: Python
-- **AI 모델**: Claude (Anthropic)
+- **백엔드**:
+  - Python 3.12+
+  - FastAPI (REST API & SSE 스트리밍)
+  - Strands (멀티 에이전트 오케스트레이션)
+  - Claude (Anthropic AI 모델)
+- **프론트엔드**:
+  - React 18 + TypeScript
+  - Vite
+  - Server-Sent Events (SSE)
 - **도구**: strands_tools (file_read, file_write)
