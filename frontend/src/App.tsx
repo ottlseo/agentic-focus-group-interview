@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { marked } from 'marked'
 import './App.css'
 
 interface Message {
@@ -7,10 +8,17 @@ interface Message {
   name?: string
 }
 
+interface ParticipantProfile {
+  id: string
+  name: string
+  profile: string
+}
+
 function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [status, setStatus] = useState<'idle' | 'connecting' | 'running' | 'completed' | 'error'>('idle')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [selectedProfile, setSelectedProfile] = useState<ParticipantProfile | null>(null)
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -23,6 +31,34 @@ function App() {
       scrollToBottom()
     }
   }, [messages])
+
+  const fetchParticipantProfile = async (participantId: string, participantName: string) => {
+    const isCloudFront = window.location.hostname.includes('cloudfront.net')
+    const backendUrl = isCloudFront
+      ? window.location.origin + `/proxy/8000/api/participants/${participantId}`
+      : `http://localhost:8000/api/participants/${participantId}`
+
+    try {
+      const response = await fetch(backendUrl)
+      const data = await response.json()
+      setSelectedProfile({
+        id: participantId,
+        name: participantName,
+        profile: data.profile
+      })
+    } catch (err) {
+      console.error('Failed to fetch profile:', err)
+      setSelectedProfile({
+        id: participantId,
+        name: participantName,
+        profile: '프로필을 불러올 수 없습니다.'
+      })
+    }
+  }
+
+  const closeModal = () => {
+    setSelectedProfile(null)
+  }
 
   const startFGI = async () => {
     setMessages([])
@@ -44,6 +80,8 @@ function App() {
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
+          
+          console.log('받은 데이터:', data) // 디버깅용
           
           if (data.type === 'complete') {
             setStatus('completed')
@@ -131,39 +169,39 @@ function App() {
                   <div className="participant-desc">인터뷰 진행자</div>
                 </div>
                 
-                <div className="participant-card">
+                <div className="participant-card" onClick={() => fetchParticipantProfile('yoonseo', '윤서')}>
                   <div className="participant-header">
                     <div className="participant-avatar">👩‍💻</div>
                     <div className="participant-name">윤서</div>
                   </div>
                   <div className="participant-desc">28세 여성, IT 스타트업 UX 디자이너</div>
                 </div>
-                
-                <div className="participant-card">
+
+                <div className="participant-card" onClick={() => fetchParticipantProfile('dohyung', '도형')}>
                   <div className="participant-header">
                     <div className="participant-avatar">👨‍💼</div>
                     <div className="participant-name">도형</div>
                   </div>
                   <div className="participant-desc">32세 남성, 제조업 영업팀 과장</div>
                 </div>
-                
-                <div className="participant-card">
+
+                <div className="participant-card" onClick={() => fetchParticipantProfile('jiyeon', '지연')}>
                   <div className="participant-header">
                     <div className="participant-avatar">👩‍💼</div>
                     <div className="participant-name">지연</div>
                   </div>
                   <div className="participant-desc">37세 여성, 프리랜서 마케팅 컨설턴트</div>
                 </div>
-                
-                <div className="participant-card">
+
+                <div className="participant-card" onClick={() => fetchParticipantProfile('sukwon', '석원')}>
                   <div className="participant-header">
-                    <div className="participant-avatar">👨‍🏢</div>
+                    <div className="participant-avatar">👨</div>
                     <div className="participant-name">석원</div>
                   </div>
                   <div className="participant-desc">42세 남성, 금융회사 팀장</div>
                 </div>
-                
-                <div className="participant-card">
+
+                <div className="participant-card" onClick={() => fetchParticipantProfile('shinchul', '신철')}>
                   <div className="participant-header">
                     <div className="participant-avatar">👨‍🎓</div>
                     <div className="participant-name">신철</div>
@@ -176,14 +214,14 @@ function App() {
         )}
 
         {messages.map((msg, index) => (
-          <div key={index} className={`message message-${msg.type}`}>
-            {msg.type === 'system' && (
+          <div key={index} className={`message message-${msg.role || msg.type}`}>
+            {(msg.role === 'system' || msg.type === 'system') && (
               <div className="bubble bubble-system">
                 <span className="message-icon">ℹ️</span> {msg.content}
               </div>
             )}
 
-            {msg.type === 'moderator' && (
+            {(msg.role === 'moderator' || msg.type === 'moderator') && (
               <>
                 <div className="avatar avatar-moderator">🎤</div>
                 <div className="message-content">
@@ -197,13 +235,13 @@ function App() {
               </>
             )}
 
-            {msg.type === 'participant' && (
+            {(msg.role === 'participant' || msg.type === 'participant') && (
               <>
                 <div className="avatar avatar-participant">
                   {msg.name === '윤서' && '👩‍💻'}
                   {msg.name === '도형' && '👨‍💼'}
                   {msg.name === '지연' && '👩‍💼'}
-                  {msg.name === '석원' && '👨‍🏢'}
+                  {msg.name === '석원' && '👨'}
                   {msg.name === '신철' && '👨‍🎓'}
                 </div>
                 <div className="message-content">
@@ -217,7 +255,7 @@ function App() {
               </>
             )}
 
-            {msg.type === 'error' && (
+            {(msg.role === 'system' && msg.type === 'error') && (
               <div className="bubble bubble-error">
                 <span className="message-icon">❌</span> {msg.content}
               </div>
@@ -226,6 +264,23 @@ function App() {
         ))}
         <div ref={messagesEndRef} />
       </main>
+
+      {selectedProfile && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedProfile.name}의 프로필</h2>
+              <button className="modal-close" onClick={closeModal}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div
+                className="markdown-content"
+                dangerouslySetInnerHTML={{ __html: marked(selectedProfile.profile) }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
