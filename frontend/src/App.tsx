@@ -99,6 +99,14 @@ function App() {
 
       eventSource.onerror = (err) => {
         console.error('SSE Error:', err)
+        console.error('EventSource readyState:', eventSource.readyState)
+
+        // readyState 2 = CLOSED (정상 종료 가능)
+        if (eventSource.readyState === EventSource.CLOSED) {
+          console.log('SSE connection closed normally')
+          return
+        }
+
         setStatus('error')
         setMessages(prev => [...prev, {
           type: 'error',
@@ -107,7 +115,7 @@ function App() {
         eventSource.close()
       }
 
-      // 3분 후 자동 종료
+      // 10분 후 자동 종료 (충분한 대화 시간 확보)
       setTimeout(() => {
         if (eventSource.readyState !== EventSource.CLOSED) {
           eventSource.close()
@@ -117,7 +125,7 @@ function App() {
             content: '요청 시간이 초과되었습니다.'
           }])
         }
-      }, 180000)
+      }, 600000)  // 10분
 
     } catch (err) {
       console.error('Request Error:', err)

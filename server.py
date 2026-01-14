@@ -232,6 +232,8 @@ def create_orchestrator_agent():
 
 async def fgi_stream():
     """FGI 진행 과정을 SSE로 스트리밍"""
+    client_disconnected = False
+
     try:
         # 큐 초기화
         while not message_queue.empty():
@@ -241,12 +243,17 @@ async def fgi_stream():
         conversation_history.clear()
 
         # 시작 메시지
-        yield f"data: {json.dumps({'type': 'system', 'content': '인터뷰 세션을 시작합니다...', 'role': 'system'}, ensure_ascii=False)}\n\n"
-        await asyncio.sleep(0.5)
+        try:
+            yield f"data: {json.dumps({'type': 'system', 'content': '인터뷰 세션을 시작합니다...', 'role': 'system'}, ensure_ascii=False)}\n\n"
+            await asyncio.sleep(0.5)
 
-        # 참가자 소개
-        yield f"data: {json.dumps({'type': 'system', 'content': '참가자: 윤서, 도형, 지연, 석원, 신철', 'role': 'system'}, ensure_ascii=False)}\n\n"
-        await asyncio.sleep(0.5)
+            # 참가자 소개
+            yield f"data: {json.dumps({'type': 'system', 'content': '참가자: 윤서, 도형, 지연, 석원, 신철', 'role': 'system'}, ensure_ascii=False)}\n\n"
+            await asyncio.sleep(0.5)
+        except Exception as e:
+            print(f"[WARNING] Client disconnected during initialization: {e}")
+            client_disconnected = True
+            return
 
         # Orchestrator 생성
         orchestrator = create_orchestrator_agent()
@@ -280,26 +287,51 @@ async def fgi_stream():
         orchestrator_thread.start()
 
         # 큐에서 메시지를 읽어서 스트리밍
+        import time
+        last_keepalive = time.time()
+
         while True:
             try:
                 # 1초마다 큐 확인
                 message = message_queue.get(timeout=1.0)
 
                 if message['type'] == 'complete':
-                    yield f"data: {json.dumps({'type': 'system', 'content': '인터뷰 세션이 종료되었습니다.'}, ensure_ascii=False)}\n\n"
-                    yield f"data: {json.dumps({'type': 'complete'}, ensure_ascii=False)}\n\n"
+                    try:
+                        yield f"data: {json.dumps({'type': 'system', 'content': '인터뷰 세션이 종료되었습니다.'}, ensure_ascii=False)}\n\n"
+                        yield f"data: {json.dumps({'type': 'complete'}, ensure_ascii=False)}\n\n"
+                    except Exception as e:
+                        print(f"[WARNING] Client disconnected during completion: {e}")
                     break
                 else:
-                    yield f"data: {json.dumps(message, ensure_ascii=False)}\n\n"
+                    try:
+                        yield f"data: {json.dumps(message, ensure_ascii=False)}\n\n"
+                        last_keepalive = time.time()
+                    except Exception as e:
+                        print(f"[WARNING] Client disconnected, stopping stream: {e}")
+                        client_disconnected = True
+                        break
 
             except queue.Empty:
+                # 15초마다 keep-alive 전송 (연결 유지)
+                if time.time() - last_keepalive > 15:
+                    try:
+                        yield f": keepalive\n\n"
+                        last_keepalive = time.time()
+                    except Exception as e:
+                        print(f"[WARNING] Client disconnected during keepalive: {e}")
+                        client_disconnected = True
+                        break
                 continue
             except Exception as e:
-                yield f"data: {json.dumps({'type': 'error', 'content': f'스트리밍 오류: {str(e)}'}, ensure_ascii=False)}\n\n"
+                print(f"[ERROR] Stream error: {e}")
+                try:
+                    yield f"data: {json.dumps({'type': 'error', 'content': f'스트리밍 오류: {str(e)}'}, ensure_ascii=False)}\n\n"
+                except:
+                    pass
                 break
 
-        # 스레드 종료 대기
-        orchestrator_thread.join(timeout=60)
+        # 스레드 종료 대기 (충분한 시간 확보)
+        orchestrator_thread.join(timeout=300)  # 5분
 
     except Exception as e:
         error_msg = f"오류가 발생했습니다: {str(e)}"
