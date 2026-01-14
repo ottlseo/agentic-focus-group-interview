@@ -162,10 +162,34 @@ function App() {
       <main className="chat-container">
         {messages.length === 0 && status === 'idle' && (
           <div className="empty-state">
-            <p>👆 "인터뷰 시작" 버튼을 눌러 인터뷰를 시작하세요</p>
-            <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '12px' }}>
-              실시간 스트리밍으로 대화가 진행됩니다 (약 1-2분 소요)
-            </p>
+            <div className="interview-info">
+              <div className="info-header">
+                <span className="info-icon">🎯</span>
+                <h2>구독형 밀키트 서비스 FGI</h2>
+              </div>
+              <div className="info-content">
+                <div className="info-section">
+                  <h3>📋 인터뷰 목적</h3>
+                  <p>구독형 밀키트 서비스의 고객 니즈와 페인 포인트를 파악하여, 서비스 기획 및 개선 방향을 도출합니다.</p>
+                </div>
+                <div className="info-section">
+                  <h3>💬 주요 탐색 주제</h3>
+                  <ul>
+                    <li>현재 식생활 패턴 및 밀키트 사용 경험</li>
+                    <li>구독형 서비스에 대한 기대와 우려</li>
+                    <li>가격, 메뉴 구성, 배송 주기 등 선호사항</li>
+                    <li>의사결정 요인 및 개선 아이디어</li>
+                  </ul>
+                </div>
+                <div className="info-section">
+                  <h3>⏱️ 예상 소요 시간</h3>
+                  <p>약 5-10분 (AI 기반 자동 진행)</p>
+                </div>
+              </div>
+              <div className="start-prompt">
+                <p>👆 "인터뷰 시작" 버튼을 눌러 시작하세요</p>
+              </div>
+            </div>
             <div className="participants-info">
               <h3>참가자</h3>
               <div className="participants-grid">
